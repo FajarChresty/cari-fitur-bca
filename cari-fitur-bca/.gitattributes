@@ -1,0 +1,13 @@
+* text=auto
+
+# Unity YAML
+*.unity merge=unityyamlmerge eol=lf
+*.prefab merge=unityyamlmerge eol=lf
+*.asset merge=unityyamlmerge eol=lf
+*.meta eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.psd binary
