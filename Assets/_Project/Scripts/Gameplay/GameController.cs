@@ -13,7 +13,7 @@ namespace CariFiturBCA.Gameplay
     // Semua dibangun lewat kode saat game mulai, jadi cukup buka scene kosong lalu Play.
     public class GameController : MonoBehaviour
     {
-        enum Fase { Awal, Main, Menunggu, Akhir }
+        enum Fase { Awal, Tutorial, Main, Menunggu, Akhir }
 
         const string PesanMenang = "Kamu berhasil! Ingat, BCA tidak pernah minta OTP, PIN, atau password lewat chat.";
         const string PesanKalah = "Hampir! Ingat, BCA tidak pernah minta OTP, PIN, atau password lewat chat.";
@@ -29,6 +29,9 @@ namespace CariFiturBCA.Gameplay
         RectTransform canvasRoot, dunia, tumpukan, layarAwal, layarAkhir, flash;
         Image flashImg;
         Hud hud;
+        TutorialScreen tutorial;
+        float waktuTutorial;
+        const float BatasDiamTutorial = 25f; // detik tanpa sentuhan di tutorial -> kembali ke layar awal
         Text akhirJudul, akhirDetail, akhirPesan;
 
         int hp, terkumpul;
@@ -45,6 +48,7 @@ namespace CariFiturBCA.Gameplay
             BuatCanvas();
             BuatDunia();
             BuatLayarAwal();
+            BuatTutorial();
             BuatLayarAkhir();
             BuatFlash();
             KeLayarAwal();
@@ -121,7 +125,7 @@ namespace CariFiturBCA.Gameplay
             tap.color = new Color(0, 0, 0, 0);
             var btn = layarAwal.gameObject.AddComponent<Button>();
             btn.transition = Selectable.Transition.None;
-            btn.onClick.AddListener(MulaiMain);
+            btn.onClick.AddListener(KeTutorial);
         }
 
         // End screen: bg_menang / bg_kalah dari artist sudah memuat judul dan pesan edukasi (sudah tertulis di gambar).
@@ -149,6 +153,22 @@ namespace CariFiturBCA.Gameplay
 
         Image latarAkhir;
 
+        void BuatTutorial()
+        {
+            tutorial = new TutorialScreen(canvasRoot);
+            tutorial.SaatMulai = MulaiMain;
+        }
+
+        // Layar awal disentuh -> tutorial (fitur asli = aman, threat = bahaya) -> tombol MULAI MAIN -> gameplay.
+        void KeTutorial()
+        {
+            if (fase != Fase.Awal) return;
+            fase = Fase.Tutorial;
+            waktuTutorial = Time.time;
+            layarAwal.gameObject.SetActive(false);
+            tutorial.Root.gameObject.SetActive(true);
+        }
+
         void BuatFlash()
         {
             flash = UIFactory.Kotak(canvasRoot, "Flash", Vector2.zero, Vector2.zero);
@@ -166,13 +186,14 @@ namespace CariFiturBCA.Gameplay
             BersihkanTumpukan();
             dunia.gameObject.SetActive(false);
             layarAkhir.gameObject.SetActive(false);
+            tutorial.Root.gameObject.SetActive(false);
             layarAwal.gameObject.SetActive(true);
             dunia.anchoredPosition = Vector2.zero;
         }
 
         void MulaiMain()
         {
-            if (fase != Fase.Awal) return;
+            if (fase != Fase.Tutorial) return;
             hp = GameConfig.HpAwal;
             terkumpul = 0;
             sisaWaktu = GameConfig.DurasiMain;
@@ -182,6 +203,7 @@ namespace CariFiturBCA.Gameplay
             hud.SetWaktu(sisaWaktu);
 
             layarAwal.gameObject.SetActive(false);
+            tutorial.Root.gameObject.SetActive(false);
             layarAkhir.gameObject.SetActive(false);
             dunia.gameObject.SetActive(true);
             tumpukan.gameObject.SetActive(true);
@@ -194,6 +216,12 @@ namespace CariFiturBCA.Gameplay
             if (fase == Fase.Awal)
             {
                 // Layar awal diam. Tombol "Sentuh untuk memulai" sudah menyatu di gambar artist.
+            }
+            else if (fase == Fase.Tutorial)
+            {
+                // Tiap sentuhan menunda kembali ke layar awal (booth kosong tidak menahan tutorial selamanya)
+                if (Input.GetMouseButton(0) || Input.touchCount > 0) waktuTutorial = Time.time;
+                if (Time.time - waktuTutorial >= BatasDiamTutorial) KeLayarAwal();
             }
             else if (fase == Fase.Main)
             {
