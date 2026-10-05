@@ -34,13 +34,19 @@ namespace CariFiturBCA.UI
             UIFactory.Gambar(induk, "ui_timer", TimerPos, new Vector2(300, 120), new Color(0, 0, 0, 0.35f));
             timerTeks = UIFactory.Teks(induk, "", TimerPos, new Vector2(300, 120), 84, TextAnchor.MiddleCenter, timerNormal);
 
-            // Deck hp BCA (asli 400 x 600, ditampilkan lebih kecil) dan counter di bawahnya
+            // Deck hp BCA (asli 400 x 600, ditampilkan lebih kecil).
+            // Gambar deck.png dari artist sudah punya kotak "0/5" di bagian bawah. Angka di gambar tidak
+            // bisa berubah, jadi kotak itu ditutup plat biru lalu diganti counter dari kode.
+            // Kalau artist mengekspor ulang deck.png tanpa angka, plat biru ini boleh dihapus.
             var deck = UIFactory.Gambar(induk, "deck", GameConfig.DeckPos, GameConfig.DeckUkuran, UIFactory.BiruBca);
             if (!deck.sprite)
                 UIFactory.Teks(induk, "HP BCA", GameConfig.DeckPos, GameConfig.DeckUkuran, 48, TextAnchor.MiddleCenter, Color.white);
-            var posCounter = GameConfig.DeckPos + new Vector2(0, -GameConfig.DeckUkuran.y / 2f - 50);
-            UIFactory.Gambar(induk, "ui_counter", posCounter, new Vector2(220, 80), new Color(0, 0, 0, 0.35f));
-            counterTeks = UIFactory.Teks(induk, "", posCounter, new Vector2(220, 80), 56, TextAnchor.MiddleCenter, Color.white);
+
+            // Posisi kotak "0/5" pada deck.png (dihitung dari gambar 400 x 600, tampil 300 x 450).
+            var posCounter = GameConfig.DeckPos + new Vector2(0, -147);
+            UIFactory.Gambar(induk, null, posCounter, new Vector2(170, 52), new Color(0.02f, 0.22f, 0.62f)); // plat penutup
+            UIFactory.Gambar(induk, null, posCounter, new Vector2(112, 42), Color.white);                    // kotak putih counter
+            counterTeks = UIFactory.Teks(induk, "", posCounter, new Vector2(112, 42), 34, TextAnchor.MiddleCenter, UIFactory.TeksGelap);
         }
 
         // Area drop deck: sedikit lebih besar dari gambarnya (GDD bagian 9). Koordinat canvas.
