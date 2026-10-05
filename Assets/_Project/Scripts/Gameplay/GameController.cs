@@ -29,7 +29,7 @@ namespace CariFiturBCA.Gameplay
         RectTransform canvasRoot, dunia, tumpukan, layarAwal, layarAkhir, flash;
         Image flashImg;
         Hud hud;
-        Text akhirJudul, akhirDetail, akhirPesan, awalSentuh;
+        Text akhirJudul, akhirDetail, akhirPesan;
 
         int hp, terkumpul;
         float sisaWaktu, waktuAkhirMulai;
@@ -89,29 +89,56 @@ namespace CariFiturBCA.Gameplay
             UIFactory.Penuh(tumpukan);
         }
 
+        // Layar awal: gambar bg_awal dari artist SUDAH berisi logo BCA mobile, ponsel, dan tulisan
+        // "Sentuh untuk memulai". Jadi kode tidak menambah judul atau tombol lagi (dulu bikin dobel).
+        // Gambar ditampilkan utuh tanpa melar (preserveAspect), sisa layar diisi warna latar.
         void BuatLayarAwal()
         {
             layarAwal = UIFactory.Kotak(canvasRoot, "LayarAwal", Vector2.zero, Vector2.zero);
             UIFactory.Penuh(layarAwal);
-            Latar(layarAwal, UIFactory.BiruBca, "bg_awal", "bg_title", "layar_awal", "title");
-            UIFactory.Teks(layarAwal, "Cari Fitur BCA", new Vector2(0, 150), new Vector2(1500, 200), 140,
-                           TextAnchor.MiddleCenter, Color.white);
-            awalSentuh = UIFactory.Teks(layarAwal, "Sentuh untuk mulai", new Vector2(0, -200), new Vector2(1200, 120), 72,
-                                        TextAnchor.MiddleCenter, Color.white);
 
-            // Seluruh layar adalah satu tombol besar.
+            // Warna isi samping gambar. Samakan dengan warna dasar bg_awal (sekarang putih).
+            var isi = UIFactory.Kotak(layarAwal, "IsiLatar", Vector2.zero, Vector2.zero);
+            UIFactory.Penuh(isi);
+            var isiImg = isi.gameObject.AddComponent<Image>();
+            isiImg.color = Color.white;
+            isiImg.raycastTarget = false;
+
+            var art = Latar(layarAwal, UIFactory.BiruBca, "bg_awal", "bg_title", "layar_awal", "title");
+            art.preserveAspect = true;
+
+            // Cadangan: kalau gambar belum ada, tampilkan teks supaya tetap bisa dites.
+            if (art.sprite == null)
+            {
+                UIFactory.Teks(layarAwal, "Cari Fitur BCA", new Vector2(0, 150), new Vector2(1400, 180), 110,
+                               TextAnchor.MiddleCenter, Color.white);
+                UIFactory.Teks(layarAwal, "Sentuh untuk mulai", new Vector2(0, -150), new Vector2(1000, 100), 56,
+                               TextAnchor.MiddleCenter, Color.white);
+            }
+
+            // Seluruh layar adalah satu tombol besar untuk memulai game
             var tap = layarAwal.gameObject.AddComponent<Image>();
             tap.color = new Color(0, 0, 0, 0);
-            var b = layarAwal.gameObject.AddComponent<Button>();
-            b.transition = Selectable.Transition.None;
-            b.onClick.AddListener(MulaiMain);
+            var btn = layarAwal.gameObject.AddComponent<Button>();
+            btn.transition = Selectable.Transition.None;
+            btn.onClick.AddListener(MulaiMain);
         }
 
+        // End screen: bg_menang / bg_kalah dari artist sudah memuat judul dan pesan edukasi (sudah tertulis di gambar).
+        // Kode hanya menambah satu baris hasil (sisa waktu / fitur terkumpul) di panel putih.
+        // Kalau gambar belum ada, tampil judul + pesan cadangan supaya tetap bisa dites.
         void BuatLayarAkhir()
         {
             layarAkhir = UIFactory.Kotak(canvasRoot, "LayarAkhir", Vector2.zero, Vector2.zero);
             UIFactory.Penuh(layarAkhir);
-            // Dua gambar end screen: menang dan kalah. Dipilih saat layar tampil (lihat TampilkanAkhir).
+
+            // Warna isi samping gambar (gambar artist berbentuk persegi, layar 16:9). Putih sesuai dasar gambar.
+            var isi = UIFactory.Kotak(layarAkhir, "IsiLatar", Vector2.zero, Vector2.zero);
+            UIFactory.Penuh(isi);
+            var isiImg = isi.gameObject.AddComponent<Image>();
+            isiImg.color = Color.white;
+            isiImg.raycastTarget = false;
+
             akhirJudul = UIFactory.Teks(layarAkhir, "", new Vector2(0, 220), new Vector2(1500, 180), 120,
                                         TextAnchor.MiddleCenter, Color.white);
             akhirDetail = UIFactory.Teks(layarAkhir, "", new Vector2(0, 60), new Vector2(1500, 120), 64,
@@ -166,9 +193,7 @@ namespace CariFiturBCA.Gameplay
         {
             if (fase == Fase.Awal)
             {
-                // Teks "Sentuh untuk mulai" berdenyut pelan supaya layar tidak terlihat mati.
-                float a = 0.65f + 0.35f * Mathf.Sin(Time.time * 3f);
-                awalSentuh.color = new Color(1, 1, 1, a);
+                // Layar awal diam. Tombol "Sentuh untuk memulai" sudah menyatu di gambar artist.
             }
             else if (fase == Fase.Main)
             {
@@ -193,10 +218,11 @@ namespace CariFiturBCA.Gameplay
         // Area tempat item muncul: kiri deck dan di bawah bar atas, tidak menutupi UI dan deck.
         static Rect AreaTumpukan()
         {
-            float xMin = -GameConfig.Layar.x / 2f + GameConfig.MarginTumpukan;
+            // Batas kiri, bawah, atas mengikuti area biru gelap bg_main (GameConfig.AreaMain).
+            float xMin = GameConfig.AreaMain.xMin;
             float xMax = GameConfig.DeckPos.x - GameConfig.DeckUkuran.x / 2f - GameConfig.DropDeckTambahan - 20f;
-            float yMin = -GameConfig.Layar.y / 2f + GameConfig.MarginTumpukan;
-            float yMax = GameConfig.Layar.y / 2f - GameConfig.TinggiBarAtas;
+            float yMin = GameConfig.AreaMain.yMin;
+            float yMax = GameConfig.AreaMain.yMax;
             return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
         }
 
@@ -234,16 +260,17 @@ namespace CariFiturBCA.Gameplay
                     rotasi += Random.Range(-GameConfig.RotasiThreatVariasi, GameConfig.RotasiThreatVariasi);
                     ukuran *= 1f + Random.Range(-GameConfig.UkuranThreatVariasi, GameConfig.UkuranThreatVariasi);
                 }
-                var pos = TitikAcak(area, ukuran);
+                var pos = TitikAcak(area, ukuran, rotasi);
                 var item = DraggableItem.Buat(tumpukan, def, pos, ukuran, rotasi);
                 item.SaatDilepas = SaatItemDilepas;
             }
         }
 
         // Titik acak di dalam area, dengan jarak setengah ukuran item dari tepi supaya item tidak keluar area.
-        static Vector2 TitikAcak(Rect area, float ukuran)
+        // Rotasi ikut dihitung: item yang miring butuh jarak lebih besar dari tepi.
+        static Vector2 TitikAcak(Rect area, float ukuran, float rotasi)
         {
-            float s = ukuran / 2f;
+            float s = DraggableItem.SetengahLebar(ukuran, rotasi);
             return new Vector2(Random.Range(area.xMin + s, area.xMax - s), Random.Range(area.yMin + s, area.yMax - s));
         }
 
@@ -296,7 +323,7 @@ namespace CariFiturBCA.Gameplay
             Kilat(new Color(1f, 0.15f, 0.15f, 0.5f));
             Goyang();
             // Threat yang salah masuk mental balik ke tumpukan.
-            StartCoroutine(item.MentalKe(TitikAcak(AreaTumpukan(), item.GetComponent<RectTransform>().sizeDelta.x)));
+            StartCoroutine(item.MentalKe(TitikAcak(AreaTumpukan(), item.GetComponent<RectTransform>().sizeDelta.x, item.transform.localEulerAngles.z)));
 
             if (hp <= 0)
             {
@@ -330,13 +357,40 @@ namespace CariFiturBCA.Gameplay
             latarAkhir = Latar(layarAkhir, menang ? new Color(0.1f, 0.6f, 0.35f) : new Color(0.75f, 0.25f, 0.25f),
                                menang ? new[] { "bg_menang", "end_menang", "end_win", "win" }
                                       : new[] { "bg_kalah", "end_kalah", "end_lose", "lose" });
-            latarAkhir.transform.SetAsFirstSibling();
+            latarAkhir.transform.SetSiblingIndex(1); // tepat di atas warna isi samping
+            bool adaGambar = latarAkhir.sprite != null;
+            latarAkhir.preserveAspect = true;
 
-            akhirJudul.text = menang ? "Menang!" : "Kalah";
-            akhirDetail.text = menang
+            string detail = menang
                 ? $"Sisa waktu: {sisaWaktu:0.0} detik"
                 : $"Fitur terkumpul: {terkumpul}/{GameConfig.TargetFitur}";
-            akhirPesan.text = menang ? PesanMenang : PesanKalah;
+            var rtDetail = akhirDetail.rectTransform;
+            if (adaGambar)
+            {
+                // Judul dan pesan sudah ada di gambar: hanya tampilkan baris hasil, di dalam panel putih.
+                akhirJudul.text = "";
+                akhirPesan.text = "";
+                rtDetail.anchoredPosition = GameConfig.PosDetailAkhir;
+                // Panel putih di gambar sempit (sekitar 380 px), jadi teks dibuat kecil dan otomatis mengecil kalau kepanjangan.
+                rtDetail.sizeDelta = new Vector2(340, 70);
+                akhirDetail.fontSize = 34;
+                akhirDetail.resizeTextForBestFit = true;
+                akhirDetail.resizeTextMinSize = 18;
+                akhirDetail.resizeTextMaxSize = 34;
+                akhirDetail.color = UIFactory.BiruBca;
+            }
+            else
+            {
+                rtDetail.anchoredPosition = new Vector2(0, 60);
+                rtDetail.sizeDelta = new Vector2(1500, 120);
+                akhirDetail.resizeTextForBestFit = false;
+                akhirDetail.fontSize = 64;
+                akhirDetail.color = Color.white;
+                akhirJudul.text = menang ? "Menang!" : "Kalah";
+                akhirPesan.text = menang ? PesanMenang : PesanKalah;
+            }
+            akhirDetail.text = detail;
+            akhirDetail.transform.SetAsLastSibling();
             layarAkhir.gameObject.SetActive(true);
         }
 

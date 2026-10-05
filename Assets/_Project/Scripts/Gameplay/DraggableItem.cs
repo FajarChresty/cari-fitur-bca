@@ -67,9 +67,11 @@ namespace CariFiturBCA.Gameplay
         {
             if (!SedangDrag || !bisaDigeser) return;
             var target = KePosisiLokal(e) + selisihGenggam;
-            float sisi = rt.sizeDelta.x / 2f;
-            target.x = Mathf.Clamp(target.x, -batasLayar.x + sisi, batasLayar.x - sisi);
-            target.y = Mathf.Clamp(target.y, -batasLayar.y + sisi, batasLayar.y - sisi);
+            // Item dikurung di area biru gelap (GameConfig.AreaMain), memperhitungkan rotasinya.
+            float sisi = SetengahLebar(rt.sizeDelta.x, rt.localEulerAngles.z);
+            var area = GameConfig.AreaMain;
+            target.x = Mathf.Clamp(target.x, area.xMin + sisi, area.xMax - sisi);
+            target.y = Mathf.Clamp(target.y, area.yMin + sisi, area.yMax - sisi);
             rt.anchoredPosition = target;
         }
 
@@ -95,6 +97,13 @@ namespace CariFiturBCA.Gameplay
         }
 
         public Vector2 Posisi => rt.anchoredPosition;
+
+        // Setengah lebar kotak item setelah diputar. Dipakai supaya item tidak keluar dari area main.
+        public static float SetengahLebar(float ukuran, float derajat)
+        {
+            float r = derajat * Mathf.Deg2Rad;
+            return ukuran * 0.5f * (Mathf.Abs(Mathf.Cos(r)) + Mathf.Abs(Mathf.Sin(r))) * GameConfig.KoefTepiItem;
+        }
 
         // ---- Animasi ----
 

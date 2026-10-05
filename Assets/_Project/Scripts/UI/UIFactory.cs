@@ -27,6 +27,20 @@ namespace CariFiturBCA.UI
             }
         }
 
+        // Font khusus angka timer (gaya jam digital 7-segmen). File: Resources/Fonts/timer_font.ttf.
+        // Kalau tidak ada, dipakai font UI biasa.
+        static Font fontTimer;
+        public static Font FontTimer
+        {
+            get
+            {
+                if (fontTimer != null) return fontTimer;
+                fontTimer = Resources.Load<Font>("Fonts/timer_font");
+                if (fontTimer == null) fontTimer = Font;
+                return fontTimer;
+            }
+        }
+
         public static RectTransform Kotak(Transform induk, string nama, Vector2 pos, Vector2 ukuran)
         {
             var go = new GameObject(nama, typeof(RectTransform));

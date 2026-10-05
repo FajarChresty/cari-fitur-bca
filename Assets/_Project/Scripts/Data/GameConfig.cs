@@ -33,5 +33,14 @@ namespace CariFiturBCA.Data
         public static readonly UnityEngine.Vector2 DeckPos = new UnityEngine.Vector2(740, 215);    // kanan atas
         public const float TinggiBarAtas = 150f;   // area HP dan timer di atas
         public const float MarginTumpukan = 100f;  // jarak area tumpukan dari tepi layar
+
+        // Area main = bagian BIRU GELAP di bg_main (di dalam garis border, di bawah pita biru muda).
+        // Item (threat dan fitur asli) tidak boleh keluar dari kotak ini, baik saat muncul maupun saat di-drag.
+        // Koordinat canvas (0,0 = tengah). Ubah angkanya kalau background diganti.
+        public static readonly UnityEngine.Rect AreaMain = UnityEngine.Rect.MinMaxRect(-915f, -420f, 915f, 320f);
+        // Seberapa "penuh" kotak item dianggap saat dihitung menempel ke tepi (1 = kotak penuh, lebih kecil = boleh lebih mepet).
+        public const float KoefTepiItem = 0.85f;
+        // Posisi teks hasil di end screen (di dalam panel putih pada bg_menang / bg_kalah).
+        public static readonly UnityEngine.Vector2 PosDetailAkhir = new UnityEngine.Vector2(0, -91);
     }
 }
