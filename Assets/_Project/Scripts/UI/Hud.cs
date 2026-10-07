@@ -7,15 +7,14 @@ namespace CariFiturBCA.UI
     // Tata letak GDD bagian 6: bar HP kiri atas, timer tengah atas, deck hp BCA + counter kanan atas.
     public class Hud
     {
-        // Pita atas (area biru muda di bg_main) berada di y sekitar 318 sampai 474.
-        // Semua elemen atas ditaruh di tengah pita itu supaya tidak menabrak garis border.
-        const float YBarAtas = 396f;
-        // Geser X: makin besar (mendekati 0) = makin ke kanan, menjauh dari border kiri.
-        static readonly Vector2 HpPos = new Vector2(-550, YBarAtas);
-        static readonly Vector2 HpUkuran = new Vector2(560, 56);
-        static readonly Vector2 TimerPos = new Vector2(0, YBarAtas);
-        // Gambar ui_timer punya ikon jam di kiri, jadi angka digeser ke kanan supaya
-        // tepat di tengah ruang kosong. Ubah angka ini kalau masih kurang pas.
+        // Bar HP dan timer ditaruh di tengah pita biru muda bagian atas (di dalam border, tidak menabrak garis).
+        // Landscape: HP kiri, timer tengah. Potret: HP kiri, timer kanan (lebar layar hanya 1080).
+        const float YBarAtas = GameConfig.Potret ? 775f : 396f;
+        // Geser X: makin besar (mendekati 0) = makin ke kanan.
+        static readonly Vector2 HpPos = GameConfig.Potret ? new Vector2(-270, YBarAtas) : new Vector2(-550, YBarAtas);
+        static readonly Vector2 HpUkuran = GameConfig.Potret ? new Vector2(420, 56) : new Vector2(560, 56);
+        static readonly Vector2 TimerPos = GameConfig.Potret ? new Vector2(330, YBarAtas) : new Vector2(0, YBarAtas);
+        // Gambar ui_timer punya ikon jam di kiri, jadi angka digeser ke kanan supaya tepat di ruang kosong.
         static readonly Vector2 TimerAngkaGeser = new Vector2(36, 0);
 
         readonly RectTransform hpIsi;

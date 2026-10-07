@@ -27,20 +27,30 @@ namespace CariFiturBCA.Data
         // Area drop deck sedikit lebih besar dari gambarnya (piksel tambahan tiap sisi).
         public const float DropDeckTambahan = 60f;
 
-        // Tata letak (patokan 1920 x 1080, titik 0,0 = tengah layar, Y ke atas)
-        public static readonly UnityEngine.Vector2 Layar = new UnityEngine.Vector2(1920, 1080);
+        // MODE LAYAR: true = potret 1080 x 1920 (HP / tablet berdiri), false = landscape 1920 x 1080 (layar booth sesuai GDD).
+        // Cukup ubah satu baris ini untuk berpindah mode, lalu samakan Default Orientation di Player Settings.
+        public const bool Potret = true;
+
+        // Tata letak (titik 0,0 = tengah layar, Y ke atas)
+        public static readonly UnityEngine.Vector2 Layar = Potret ? new UnityEngine.Vector2(1080, 1920) : new UnityEngine.Vector2(1920, 1080);
         public static readonly UnityEngine.Vector2 DeckUkuran = new UnityEngine.Vector2(300, 450); // asli 400 x 600
-        public static readonly UnityEngine.Vector2 DeckPos = new UnityEngine.Vector2(740, 215);    // kanan atas
+        // Landscape: kanan atas. Potret: tengah bawah (HP dan timer memenuhi baris atas).
+        public static readonly UnityEngine.Vector2 DeckPos = Potret ? new UnityEngine.Vector2(0, -640) : new UnityEngine.Vector2(740, 215);
         public const float TinggiBarAtas = 150f;   // area HP dan timer di atas
         public const float MarginTumpukan = 100f;  // jarak area tumpukan dari tepi layar
 
         // Area main = bagian BIRU GELAP di bg_main (di dalam garis border, di bawah pita biru muda).
         // Item (threat dan fitur asli) tidak boleh keluar dari kotak ini, baik saat muncul maupun saat di-drag.
         // Koordinat canvas (0,0 = tengah). Ubah angkanya kalau background diganti.
-        public static readonly UnityEngine.Rect AreaMain = UnityEngine.Rect.MinMaxRect(-915f, -420f, 915f, 320f);
+        public static readonly UnityEngine.Rect AreaMain = Potret
+            ? UnityEngine.Rect.MinMaxRect(-495f, -905f, 495f, 650f)   // potret
+            : UnityEngine.Rect.MinMaxRect(-915f, -420f, 915f, 320f);  // landscape
         // Seberapa "penuh" kotak item dianggap saat dihitung menempel ke tepi (1 = kotak penuh, lebih kecil = boleh lebih mepet).
         public const float KoefTepiItem = 0.85f;
-        // Posisi teks hasil di end screen (di dalam panel putih pada bg_menang / bg_kalah).
-        public static readonly UnityEngine.Vector2 PosDetailAkhir = new UnityEngine.Vector2(0, -91);
+        // Baris hasil di end screen (di dalam panel putih bg_menang / bg_kalah).
+        // Diukur dalam piksel GAMBAR (sprite 950 x 1848), lalu dikalikan skala tampilan, jadi benar di potret maupun landscape.
+        public static readonly UnityEngine.Vector2 PosDetailPx = new UnityEngine.Vector2(0, -156);
+        public static readonly UnityEngine.Vector2 UkuranDetailPx = new UnityEngine.Vector2(582, 120);
+        public const float FontDetailPx = 58f;
     }
 }

@@ -1,4 +1,5 @@
 using CariFiturBCA.Core;
+using CariFiturBCA.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,7 +29,6 @@ namespace CariFiturBCA.UI
         }
 
         // Font khusus angka timer (gaya jam digital 7-segmen). File: Resources/Fonts/timer_font.ttf.
-        // Kalau tidak ada, dipakai font UI biasa.
         static Font fontTimer;
         public static Font FontTimer
         {
@@ -39,6 +39,31 @@ namespace CariFiturBCA.UI
                 if (fontTimer == null) fontTimer = Font;
                 return fontTimer;
             }
+        }
+
+        // Latar gameplay dan tutorial. Memakai bg_main_potret (atau bg_main) kalau orientasi gambarnya cocok
+        // dengan mode layar. Kalau tidak cocok (mis. bg_main landscape dipakai di mode potret), digambar
+        // latar sementara lewat kode: biru gelap + pita biru muda di atas + garis border cyan.
+        public static void LatarGameplay(Transform induk)
+        {
+            var s = SpriteLibrary.GetAny("bg_main_potret", "bg_main_portrait", "bg_main");
+            bool cocok = s != null && ((s.rect.height > s.rect.width) == GameConfig.Potret);
+
+            var dasar = Kotak(induk, "Latar", Vector2.zero, Vector2.zero);
+            Penuh(dasar);
+            var di = dasar.gameObject.AddComponent<Image>();
+            di.raycastTarget = false;
+            if (cocok) { di.sprite = s; di.color = Color.white; return; }
+
+            if (!GameConfig.Potret) { di.color = new Color(0.82f, 0.9f, 0.97f); return; }
+
+            di.color = new Color(0.0f, 0.27f, 0.65f);
+            Gambar(induk, null, new Vector2(0, 775), new Vector2(1000, 230), new Color(0.73f, 0.93f, 1f)); // pita atas
+            var garis = new Color(0.1f, 0.7f, 1f);
+            Gambar(induk, null, new Vector2(0, 928), new Vector2(1042, 10), garis);
+            Gambar(induk, null, new Vector2(0, -928), new Vector2(1042, 10), garis);
+            Gambar(induk, null, new Vector2(-516, 0), new Vector2(10, 1866), garis);
+            Gambar(induk, null, new Vector2(516, 0), new Vector2(10, 1866), garis);
         }
 
         public static RectTransform Kotak(Transform induk, string nama, Vector2 pos, Vector2 ukuran)

@@ -30,34 +30,44 @@ namespace CariFiturBCA.UI
             Root = UIFactory.Kotak(induk, "LayarTutorial", Vector2.zero, Vector2.zero);
             UIFactory.Penuh(Root);
 
-            // Latar: bg_main, sama seperti gameplay, supaya terasa satu rangkaian.
-            var bg = UIFactory.Kotak(Root, "Latar", Vector2.zero, Vector2.zero);
-            UIFactory.Penuh(bg);
-            var bgImg = bg.gameObject.AddComponent<Image>();
-            bgImg.raycastTarget = false;
-            var bgSprite = SpriteLibrary.Get("bg_main");
-            if (bgSprite != null) { bgImg.sprite = bgSprite; bgImg.color = Color.white; }
-            else bgImg.color = new Color(0.0f, 0.25f, 0.6f);
+            // Latar sama dengan gameplay supaya terasa satu rangkaian.
+            UIFactory.LatarGameplay(Root);
+
+            bool potret = GameConfig.Potret;
 
             // Judul di pita biru muda bagian atas
-            Tebal(UIFactory.Teks(Root, "Cara Main: Mana yang Aman?", new Vector2(0, 425), new Vector2(1600, 90), 70,
-                                 TextAnchor.MiddleCenter, UIFactory.TeksGelap));
-            UIFactory.Teks(Root, "Kumpulkan 5 fitur asli BCA sebelum waktu habis", new Vector2(0, 350), new Vector2(1600, 60), 34,
-                           TextAnchor.MiddleCenter, UIFactory.TeksGelap);
+            Tebal(UIFactory.Teks(Root, "Cara Main: Mana yang Aman?", new Vector2(0, potret ? 800 : 425),
+                                 new Vector2(potret ? 1040 : 1600, 90), potret ? 56 : 70, TextAnchor.MiddleCenter, UIFactory.TeksGelap));
+            UIFactory.Teks(Root, "Kumpulkan 5 fitur asli BCA sebelum waktu habis", new Vector2(0, potret ? 735 : 350),
+                           new Vector2(potret ? 1040 : 1600, 60), potret ? 30 : 34, TextAnchor.MiddleCenter, UIFactory.TeksGelap);
 
-            // Dua kartu
             var fitur = new List<ItemDef>(ItemCatalog.FiturAsli);
             var threat = new List<ItemDef>();
             foreach (int i in ThreatContoh) if (i < ItemCatalog.Threat.Count) threat.Add(ItemCatalog.Threat[i]);
 
-            Kartu(-460f, Hijau, "FITUR ASLI BCA", fitur, true, "AMAN",
-                  "AMAN untuk di seret ke Deck BCA.");
-            Kartu(460f, Merah, "THREAT / PENIPUAN", threat, false, "BAHAYA",
-                  "Jangan dimasukkan ke Deck! Salah masuk, HP berkurang 20.");
+            float yTombol;
+            if (potret)
+            {
+                // Dua kartu bertumpuk: fitur asli di atas, threat di bawah
+                Kartu(0, 345, 960, Hijau, "FITUR ASLI BCA", fitur, true, "AMAN",
+                      "AMAN untuk di seret ke Deck BCA.");
+                Kartu(0, -245, 960, Merah, "THREAT / PENIPUAN", threat, false, "BAHAYA",
+                      "Jangan dimasukkan ke Deck BCA! Salah masuk, HP berkurang 20.");
+                yTombol = -790;
+            }
+            else
+            {
+                // Dua kartu berdampingan
+                Kartu(-460, 0, 800, Hijau, "FITUR ASLI BCA", fitur, true, "AMAN",
+                      "Seret ke deck HP BCA. Masuk deck = aman.");
+                Kartu(460, 0, 800, Merah, "THREAT / PENIPUAN", threat, false, "BAHAYA",
+                      "Jangan dimasukkan ke deck! Salah masuk, HP berkurang 20.");
+                yTombol = -355;
+            }
 
             // Tombol mulai
-            Persegi(Root, new Vector2(0, -355), new Vector2(556, 116), UIFactory.TeksGelap);
-            var isi = Persegi(Root, new Vector2(0, -355), new Vector2(530, 90), Kuning);
+            Persegi(Root, new Vector2(0, yTombol), new Vector2(556, 116), UIFactory.TeksGelap);
+            var isi = Persegi(Root, new Vector2(0, yTombol), new Vector2(530, 90), Kuning);
             isi.raycastTarget = true;
             var btn = isi.gameObject.AddComponent<Button>();
             btn.targetGraphic = isi;
@@ -66,20 +76,21 @@ namespace CariFiturBCA.UI
                                  TextAnchor.MiddleCenter, UIFactory.TeksGelap));
         }
 
-        void Kartu(float cx, Color warna, string judul, List<ItemDef> daftar, bool aman, string badge, string deskripsi)
+        void Kartu(float cx, float cy, float lebar, Color warna, string judul, List<ItemDef> daftar, bool aman, string badge, string deskripsi)
         {
             // Outline tebal gelap + isi putih (selaras gaya outline tebal di GDD bagian 11)
-            Persegi(Root, new Vector2(cx, 0), new Vector2(816, 576), UIFactory.TeksGelap);
-            Persegi(Root, new Vector2(cx, 0), new Vector2(800, 560), Color.white);
-            Persegi(Root, new Vector2(cx, 232), new Vector2(800, 96), warna);
-            Tebal(UIFactory.Teks(Root, judul, new Vector2(cx, 232), new Vector2(780, 96), 46, TextAnchor.MiddleCenter, Color.white));
+            Persegi(Root, new Vector2(cx, cy), new Vector2(lebar + 16, 576), UIFactory.TeksGelap);
+            Persegi(Root, new Vector2(cx, cy), new Vector2(lebar, 560), Color.white);
+            Persegi(Root, new Vector2(cx, cy + 232), new Vector2(lebar, 96), warna);
+            Tebal(UIFactory.Teks(Root, judul, new Vector2(cx, cy + 232), new Vector2(lebar - 20, 96), 46, TextAnchor.MiddleCenter, Color.white));
 
-            // Baris ikon
-            const float ukuran = 140f, jarak = 152f;
+            // Baris ikon (kartu lebar = ikon lebih besar)
+            bool lega = lebar >= 900f;
+            float ukuran = lega ? 150f : 140f, jarak = lega ? 170f : 152f;
             float mulai = -(daftar.Count - 1) / 2f * jarak;
             for (int i = 0; i < daftar.Count; i++)
             {
-                var pos = new Vector2(cx + mulai + i * jarak, 100);
+                var pos = new Vector2(cx + mulai + i * jarak, cy + 100);
                 var img = UIFactory.Gambar(Root, daftar[i].id, pos, new Vector2(ukuran, ukuran), new Color(0.1f, 0.45f, 0.8f));
                 if (img.sprite == null)
                     UIFactory.Teks(img.transform, daftar[i].nama, Vector2.zero, new Vector2(ukuran - 12, ukuran - 12), 22,
@@ -87,14 +98,14 @@ namespace CariFiturBCA.UI
             }
 
             // Tanda besar + tulisan AMAN / BAHAYA
-            var posBadge = new Vector2(cx - 190, -95);
+            var posBadge = new Vector2(cx - lebar * 0.2375f, cy - 95);
             Lingkaran(posBadge, 132, UIFactory.TeksGelap);
             Lingkaran(posBadge, 116, warna);
             if (aman) Centang(posBadge, 116); else Silang(posBadge, 116);
-            Tebal(UIFactory.Teks(Root, badge, new Vector2(cx + 60, -95), new Vector2(360, 110), 72,
+            Tebal(UIFactory.Teks(Root, badge, new Vector2(cx + lebar * 0.075f, cy - 95), new Vector2(360, 110), 72,
                                  TextAnchor.MiddleLeft, warna));
 
-            UIFactory.Teks(Root, deskripsi, new Vector2(cx, -208), new Vector2(720, 130), 32,
+            UIFactory.Teks(Root, deskripsi, new Vector2(cx, cy - 208), new Vector2(lebar - 80, 130), 32,
                            TextAnchor.MiddleCenter, UIFactory.TeksGelap);
         }
 

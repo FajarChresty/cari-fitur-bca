@@ -42,8 +42,9 @@ namespace CariFiturBCA.Gameplay
         void Awake()
         {
             Input.multiTouchEnabled = false;                       // satu jari saja (GDD bagian 4)
-            Screen.orientation = ScreenOrientation.LandscapeLeft;  // landscape 1920x1080
+            Screen.orientation = GameConfig.Potret ? ScreenOrientation.Portrait : ScreenOrientation.LandscapeLeft;
             Application.targetFrameRate = 60;
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;         // layar booth tidak boleh mati saat tidak ada pemain
 
             BuatCanvas();
             BuatDunia();
@@ -86,7 +87,7 @@ namespace CariFiturBCA.Gameplay
         {
             dunia = UIFactory.Kotak(canvasRoot, "Dunia", Vector2.zero, Vector2.zero);
             UIFactory.Penuh(dunia);
-            Latar(dunia, new Color(0.82f, 0.9f, 0.97f), "bg_main");
+            UIFactory.LatarGameplay(dunia);
             hud = new Hud(dunia);
             // Tumpukan dibuat terakhir supaya item yang di-drag tampil di atas deck dan HUD.
             tumpukan = UIFactory.Kotak(dunia, "Tumpukan", Vector2.zero, Vector2.zero);
@@ -248,9 +249,14 @@ namespace CariFiturBCA.Gameplay
         {
             // Batas kiri, bawah, atas mengikuti area biru gelap bg_main (GameConfig.AreaMain).
             float xMin = GameConfig.AreaMain.xMin;
-            float xMax = GameConfig.DeckPos.x - GameConfig.DeckUkuran.x / 2f - GameConfig.DropDeckTambahan - 20f;
+            float xMax = GameConfig.AreaMain.xMax;
             float yMin = GameConfig.AreaMain.yMin;
             float yMax = GameConfig.AreaMain.yMax;
+            float jarakDeck = GameConfig.DropDeckTambahan + 20f;
+            if (GameConfig.Potret)
+                yMin = GameConfig.DeckPos.y + GameConfig.DeckUkuran.y / 2f + jarakDeck;  // deck di bawah: tumpukan di atasnya
+            else
+                xMax = GameConfig.DeckPos.x - GameConfig.DeckUkuran.x / 2f - jarakDeck;  // deck di kanan: tumpukan di kirinya
             return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
         }
 
@@ -398,13 +404,19 @@ namespace CariFiturBCA.Gameplay
                 // Judul dan pesan sudah ada di gambar: hanya tampilkan baris hasil, di dalam panel putih.
                 akhirJudul.text = "";
                 akhirPesan.text = "";
-                rtDetail.anchoredPosition = GameConfig.PosDetailAkhir;
-                // Panel putih di gambar sempit (sekitar 380 px), jadi teks dibuat kecil dan otomatis mengecil kalau kepanjangan.
-                rtDetail.sizeDelta = new Vector2(340, 70);
-                akhirDetail.fontSize = 34;
+                // Posisi dan ukuran dihitung dari skala tampilan gambar, jadi pas di potret maupun landscape.
+                // Teks otomatis mengecil kalau kepanjangan untuk panel putih.
+                Vector2 kanvas = canvasRoot.rect.size;
+                if (kanvas.x < 1f) kanvas = GameConfig.Layar;
+                var sp = latarAkhir.sprite;
+                float skala = Mathf.Min(kanvas.x / sp.rect.width, kanvas.y / sp.rect.height);
+                rtDetail.anchoredPosition = GameConfig.PosDetailPx * skala;
+                rtDetail.sizeDelta = GameConfig.UkuranDetailPx * skala;
+                int fs = Mathf.RoundToInt(GameConfig.FontDetailPx * skala);
+                akhirDetail.fontSize = fs;
                 akhirDetail.resizeTextForBestFit = true;
-                akhirDetail.resizeTextMinSize = 18;
-                akhirDetail.resizeTextMaxSize = 34;
+                akhirDetail.resizeTextMinSize = Mathf.RoundToInt(fs * 0.55f);
+                akhirDetail.resizeTextMaxSize = fs;
                 akhirDetail.color = UIFactory.BiruBca;
             }
             else
